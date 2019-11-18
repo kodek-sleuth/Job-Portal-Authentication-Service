@@ -1,4 +1,4 @@
 venv
 __pycache__
 .idea
-app/users/__init__.pyc
+app/__init__.pyc
