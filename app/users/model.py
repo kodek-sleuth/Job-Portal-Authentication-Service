@@ -17,15 +17,25 @@ class User(Document):
     telephone = IntField(required=False, min_length=10, regex=regex("phone_number_regex"))
     resume = StringField(required=False, regex=regex("url_regex"))
     bio = StringField(required=False, min_length=10, max_length=500)
-    others_kills = StringField(required=False, field=StringField)
+    other_skills = StringField(required=False, field=StringField)
+    picture = StringField(required=False, default="https://image.flaticon.com/icons/svg/145/145846.svg")
+    is_verified = BooleanField(default=False)
     location = StringField(required=False)
     main_skill = StringField(required=False)
 
     @staticmethod
     def add_user(**kwargs):
-        kwargs['password'] = bcrypt.generate_password_hash(kwargs['password'], 10)
-        _user = User(**kwargs).save()
-        return _user
+        try:
+            user_in_db = User.objects(email=kwargs['email']).first()
+            if user_in_db:
+                raise GraphQLError('email is already registered')
+            else:
+                kwargs['password'] = bcrypt.generate_password_hash(kwargs['password'], 10)
+                _user = User(**kwargs).save()
+                return _user
+        except Exception as error:
+            raise GraphQLError(error)
+
 
     @staticmethod
     def display_users():
@@ -35,14 +45,11 @@ class User(Document):
     @staticmethod
     def find_user(email, password):
         try:
-            user = User.objects(__raw__={'email': email}).first()
+            user = User.objects(email=email).first()
             check_pwd = bcrypt.check_password_hash(user.password, password)
             if check_pwd:
                 return user
             else:
-                raise GraphQLError('wrong email or password')
+                return {'error': 'wrong email or password'}
         except:
-            raise GraphQLError('wrong email or password')
-
-
-
+            return {'error': 'wrong email or password'}

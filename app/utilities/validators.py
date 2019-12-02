@@ -5,24 +5,6 @@ from functools import wraps
 from graphql import GraphQLError
 from flask import request, jsonify, make_response
 
-
-def validate_create_user_mutation(func):
-    """Decorator to validate creation of a user"""
-    from app.users.model import User
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-
-        user = User.objects(__raw__={'email': kwargs['email']}).first()
-        if user and user.email:
-            raise GraphQLError('please use a different email')
-        try:
-            return func(*args, **kwargs)
-        except Exception as error:
-            raise GraphQLError(error)
-
-    return wrapper
-
 def regex(name):
     if name == "name_regex":
         name_regex = re.compile("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$")
